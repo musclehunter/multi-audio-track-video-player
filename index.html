@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>マルチトラック動画プレーヤー</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="video-container">
+      <video id="videoPlayer" controls>
+        <source src="" type="video/mp4">
+      </video>
+    </div>
+    
+    <div class="controls">
+      <button id="openFile">ファイルを開く</button>
+      <div id="audioTracks" class="audio-tracks">
+        <h3>音声トラック</h3>
+        <!-- 音声トラックのチェックボックスがここに動的に追加されます -->
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
