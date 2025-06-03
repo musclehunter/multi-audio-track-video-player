@@ -48,7 +48,8 @@ async function extractAudioTrack(videoPath, trackIndex) {
     ffmpeg(videoPath)
       .outputOptions([
         `-map 0:a:${trackIndex}`,  // 指定したトラックのみを選択
-        '-vn'  // ビデオを除外
+        '-vn',  // ビデオを除外
+        '-acodec copy'  // 音声コーデックをそのままコピー
       ])
       .output(outputPath)
       .on('end', () => resolve(outputPath))
@@ -67,7 +68,13 @@ ipcMain.handle('open-file-dialog', async () => {
   if (!result.canceled) {
     const filePath = result.filePaths[0];
     return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, async (err, metadata) => {
+      // ffprobeのオプションを設定して必要な情報のみを取得
+      const ffprobeOptions = {
+        probesize: 5000000, // 5MBまでのファイル読み込み
+        analyzeduration: 5000000, // 5秒間の分析
+      };
+
+      ffmpeg.ffprobe(filePath, ffprobeOptions, async (err, metadata) => {
         if (err) {
           reject(err);
           return;

@@ -2,6 +2,7 @@ const { ipcRenderer } = require('electron');
 const videoPlayer = document.getElementById('videoPlayer');
 const openFileButton = document.getElementById('openFile');
 const audioTracksContainer = document.getElementById('audioTracks');
+const loadingElement = document.getElementById('loading');
 
 let currentVideo = null;
 let audioPlayers = new Map(); // トラックIDとaudio要素のマップ
@@ -31,16 +32,22 @@ function updateAllVolumes(volume) {
 
 openFileButton.addEventListener('click', async () => {
   try {
+    loadingElement.style.display = 'block';
+    openFileButton.disabled = true;
     const result = await ipcRenderer.invoke('open-file-dialog');
     if (result) {
-      loadVideo(result);
+      await loadVideo(result);
     }
   } catch (error) {
     console.error('Error opening file:', error);
+    alert('ファイルの読み込み中にエラーが発生しました。');
+  } finally {
+    loadingElement.style.display = 'none';
+    openFileButton.disabled = false;
   }
 });
 
-function loadVideo(videoData) {
+async function loadVideo(videoData) {
   currentVideo = videoData;
   
   // 既存のオーディオプレーヤーをクリア
@@ -52,6 +59,15 @@ function loadVideo(videoData) {
   
   // 音声トラックのUIを更新
   updateAudioTracks(videoData.audioTracks);
+  
+  // ビデオの読み込みを待機
+  await new Promise((resolve, reject) => {
+    videoPlayer.onloadedmetadata = resolve;
+    videoPlayer.onerror = reject;
+  }).catch(error => {
+    console.error('Error loading video:', error);
+    throw new Error('ビデオの読み込みに失敗しました。');
+  });
 }
 
 function updateAudioTracks(tracks) {
